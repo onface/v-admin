@@ -85,108 +85,36 @@
         >
             <i-button >操作</i-button>
         </v-ajax>
-        <h2>自定义成功处理</h2>
+        <div class="js-demo" >
+            <h2>删除</h2>
+            <v-ajax
+                url="/mock/ok.json"
+                type="get"
+                remove="closest&.js-demo"
+            >
+                <i-button >删除</i-button>
+            </v-ajax>
+        </div>
+        <h2>自定义成功处理 - 面向前端开发人员</h2>
+         <v-ajax
+             url="/mock/ok.json"
+             type="get"
+             v-on:success="customSuccess"
+         >
+             <i-button>回调succes</i-button>
+         </v-ajax>
     </div>
-<script>
-Vue.component('v-ajax', {
-    props: ['url', 'type', 'data', 'confirm'],
-    template: `
-        <span @click="beforeSend" >
-            <slot></slot>
-        </span>
-    `,
-    data: function () {
-        return {
 
+
+<script>
+window.a = new Vue({
+    el: '#app',
+    methods: {
+        customSuccess: function (defaultAction) {
+            vAdmin.Message.info('do somethings')
+            // defaultAction()
         }
     },
-    methods: {
-        beforeSend: function () {
-            var self = this
-            var data = self.data
-            var dataIsJSON = typeof data === 'string' && /{/.test(data[0])
-            if (dataIsJSON) {
-                try {
-                    data = JSON5.parse(data)
-                }
-                catch(err) {
-                    iview.Message.error({
-                        content: data,
-                        duration: 60
-                    })
-                    iview.Message.error({
-                        content: err.message,
-                        duration: 60
-                    })
-                    throw new Error(err)
-                    return
-                }
-            }
-            if (self.confirm) {
-                iview.Modal.confirm({
-                   title: '确认操作',
-                   content: self.confirm,
-                   onOk: function () {
-                       ajax()
-                   }
-                })
-            }
-            else {
-                ajax()
-            }
-            function ajax () {
-                iview.LoadingBar.start()
-                $.ajax({
-                    url: self.url,
-                    type: self.type,
-                    data: data,
-                    dataType: 'json'
-                }).done(function (res) {
-                    if (res.status === 'success') {
-                        iview.Message.success(res.msg || '操作成功')
-                        if (res.data) {
-                            if (res.data.jump) {
-                                if (res.data.jumpDelay) {
-                                    var time = String(parseInt(res.data.jumpDelay)/100)
-                                    time = time.replace(/(\d)$/, '.$1')
-                                    iview.Message.info(
-                                        {
-                                            content: time + '秒后跳转至 <a href="res.data.jump">' + res.data.jump + '</a>',
-                                            duration: 999
-                                        }
-                                    )
-                                }
-                                setTimeout(function () {
-                                    var jumpHref = res.data.jump
-                                    if (jumpHref === 'refresh') {
-                                        jumpHref = location.href
-                                    }
-                                    location.href = jumpHref
-                                }, res.data.jumpDelay)
-                            }
-                        }
-                    }
-                    else {
-                        if (typeof res.msg === 'undefined' || res.msg.length === 0) {
-                            iview.Message.error('开发人员：状态为 error 时必须包含 msg')
-                            iview.Message.info('示例：{"status":"error","msg":"用户不存在"}')
-                            return
-                        }
-                        iview.Message.error(res.msg)
-                    }
-                }).fail(function () {
-                    iview.Message.error('网络错误或服务器错误，请刷新重试')
-                    iview.LoadingBar.error()
-                }).always(function () {
-                    iview.LoadingBar.finish()
-                })
-            }
-
-        }
-    }
-})
-new Vue({
-    el: '#app',
     data: function () {
         return {
 
