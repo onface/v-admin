@@ -1,0 +1,7 @@
+{
+    "status": "success",
+    "data": {
+        "jump": "/",
+        "jumpDelay": 2000
+    }
+}

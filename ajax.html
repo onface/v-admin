@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>v-admin</title>
+    <script src="https://unpkg.com/jquery@1.12.4/dist/jquery.js" ></script>
+    <script src="https://unpkg.com/vue@2" ></script>
+    <script src="https://unpkg.com/iview@2/dist/iview.min.js"></script>
+    <script src="./v-admin.js" ></script>
+    <link rel="stylesheet" href="https://unpkg.com/iview@2/dist/styles/iview.css" />
+    <link rel="stylesheet" href="./v-admin.css">
+</head>
+<body>
+    <div id="app" style="padding:20px;" >
+        <h1>点击按钮触发AJAX</h1>
+        <h2>成功</h2>
+        <v-ajax
+            url="/mock/ok.json"
+            type="get"
+            data="id=1"
+        >
+            <i-button type="success" >成功</i-button>
+        </v-ajax>
+        <pre>{"status": "success"} // ok.json </pre>
+        <v-ajax
+            url="/mock/ok-msg.json"
+            type="get"
+        >
+            <i-button type="success">控制成功消息</i-button>
+        </v-ajax>
+        <pre>{"status": "success", "msg": "成功发送12条短信到客户手机"} // ok-msg.json </pre>
+        <h2>跳转页面</h2>
+        <v-ajax
+            url="/mock/ok-jump.json"
+            type="get"
+        >
+            <i-button type="success" >成功后跳转页面</i-button>
+        </v-ajax>
+        <pre>{"status": "success", "data": {"jump": "/"}} // ok-jump.json</pre>
+        <v-ajax
+            url="/mock/ok-jump-delay.json"
+            type="get"
+        >
+            <i-button type="success" >延迟跳转页面</i-button>
+        </v-ajax>
+        <pre>{"status": "success", "data": {"jump": "/", "jumpDelay": 2000}} // ok-jump-delay.json</pre>
+        <v-ajax
+            url="/mock/ok-jump-refresh.json"
+            type="get"
+        >
+            <i-button type="success" >成功后刷新页面</i-button>
+        </v-ajax>
+        <pre>{"status": "success","data": {"jump": "refresh"}} // ok-jump-refresh.json</pre>
+        <h2>data</h2>
+        <v-ajax
+            url="/mock/ok.json"
+            type="get"
+            data='{"id":1}'
+        >
+            <i-button type="info" >data=JSON</i-button>
+        </v-ajax>
+        <v-ajax
+            url="/mock/ok.json"
+            type="get"
+            data='{"id":1'
+        >
+            <i-button type="info">JSON格式错误将会报错</i-button>
+        </v-ajax>
+        <h2>失败</h2>
+        <v-ajax
+            url="/mock/error.json"
+            type="get"
+            data='id=1'
+        >
+            <i-button type="error" >失败</i-button>
+        </v-ajax>
+        <pre>{"status": "error","msg": "错误消息"} // error.json</pre>
+        <h2>确认操作</h2>
+        <v-ajax
+            url="/mock/ok.json"
+            type="get"
+            confirm="确认删除？"
+        >
+            <i-button >操作</i-button>
+        </v-ajax>
+        <h2>自定义成功处理</h2>
+    </div>
+<script>
+Vue.component('v-ajax', {
+    props: ['url', 'type', 'data', 'confirm'],
+    template: `
+        <span @click="beforeSend" >
+            <slot></slot>
+        </span>
+    `,
+    data: function () {
+        return {
+
+        }
+    },
+    methods: {
+        beforeSend: function () {
+            var self = this
+            var data = self.data
+            var dataIsJSON = typeof data === 'string' && /{/.test(data[0])
+            if (dataIsJSON) {
+                try {
+                    data = JSON5.parse(data)
+                }
+                catch(err) {
+                    iview.Message.error({
+                        content: data,
+                        duration: 60
+                    })
+                    iview.Message.error({
+                        content: err.message,
+                        duration: 60
+                    })
+                    throw new Error(err)
+                    return
+                }
+            }
+            if (self.confirm) {
+                iview.Modal.confirm({
+                   title: '确认操作',
+                   content: self.confirm,
+                   onOk: function () {
+                       ajax()
+                   }
+                })
+            }
+            else {
+                ajax()
+            }
+            function ajax () {
+                iview.LoadingBar.start()
+                $.ajax({
+                    url: self.url,
+                    type: self.type,
+                    data: data,
+                    dataType: 'json'
+                }).done(function (res) {
+                    if (res.status === 'success') {
+                        iview.Message.success(res.msg || '操作成功')
+                        if (res.data) {
+                            if (res.data.jump) {
+                                if (res.data.jumpDelay) {
+                                    var time = String(parseInt(res.data.jumpDelay)/100)
+                                    time = time.replace(/(\d)$/, '.$1')
+                                    iview.Message.info(
+                                        {
+                                            content: time + '秒后跳转至 <a href="res.data.jump">' + res.data.jump + '</a>',
+                                            duration: 999
+                                        }
+                                    )
+                                }
+                                setTimeout(function () {
+                                    var jumpHref = res.data.jump
+                                    if (jumpHref === 'refresh') {
+                                        jumpHref = location.href
+                                    }
+                                    location.href = jumpHref
+                                }, res.data.jumpDelay)
+                            }
+                        }
+                    }
+                    else {
+                        if (typeof res.msg === 'undefined' || res.msg.length === 0) {
+                            iview.Message.error('开发人员：状态为 error 时必须包含 msg')
+                            iview.Message.info('示例：{"status":"error","msg":"用户不存在"}')
+                            return
+                        }
+                        iview.Message.error(res.msg)
+                    }
+                }).fail(function () {
+                    iview.Message.error('网络错误或服务器错误，请刷新重试')
+                    iview.LoadingBar.error()
+                }).always(function () {
+                    iview.LoadingBar.finish()
+                })
+            }
+
+        }
+    }
+})
+new Vue({
+    el: '#app',
+    data: function () {
+        return {
+
+        }
+    }
+})
+</script>
+</body>
+</html>
