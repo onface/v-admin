@@ -846,7 +846,9 @@ Vue.component('v-ajax', {
                 }).done(function (res) {
                     if (res.status === 'success') {
                         var defaultAction = function () {
-                            moduleFilter(self.$el, self.remove).remove()
+                            if (typeof self.remove !== 'undefined') {
+                                moduleFilter(self.$el, self.remove).remove()
+                            }
                             iview.Message.success(res.msg || '操作成功')
                             if (res.data) {
                                 if (res.data.jump) {
