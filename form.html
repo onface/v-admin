@@ -14,9 +14,22 @@
 </head>
 <body>
     <div id="app" style="padding:20px;" >
-        <v-form action="/mock/ok.json" method="get" >
-            <i-input name="user" style="width:180px;" value="username" ></i-input>
-            <i-button html-type="submit" >提交</i-button>
+        <h2>ajax form</h2>
+        <code>&lt;v-form&gt;&lt;/v-form&gt;</code>
+        <br />
+        使用方法参考 <a href="./ajax.html">./ajax.html</a> <br />
+        只是将 url 换成 action, type 换成 method。
+        <v-form action="/mock/ok.json" method="get" style="width:200px;"  >
+            <div class="ivu-form-item">
+                <i-input name="user"  value="username" ></i-input>
+            </div>
+            <div class="ivu-form-item">
+                <i-select name="some" value="b"  >
+                    <i-option value="a" >张三</i-option>
+                    <i-option value="b" >李四</i-option>
+                </i-select>
+            </div>
+            <i-button html-type="submit" type="primary" long >提交</i-button>
         </v-form>
     </div>
 <script>
