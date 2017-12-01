@@ -33,53 +33,8 @@
         </v-form>
     </div>
 <script>
-Vue.component('v-form', {
-    props: ['action', 'method'],
-    template: '<form v-on:submit.prevent="onSubmit" ><slot></slot></form>',
-    data: function () {
-        return {
-            busy: false
-        }
-    },
-    methods: {
-        onSubmit: function (e) {
-            var self = this
-            if (self.busy) {
-                return
-            }
-            var url = self.action
-            var type = self.method
-            self.busy = true
-            var ajaxOptions = {
-                type: type,
-                url: url,
-                data: $(e.target).serializeArray()
-            }
-            var lifeCycle = {
-                willFetch: function () {
-                    self.busy = true
-                },
-                didFetch: function () {
-                    self.busy = false
-                },
-                success: function (defaultAction) {
-                    self.$emit('success', [defaultAction])
-                }
-            }
-            var callAjax = function () {
-                vAdmin.ajax(ajaxOptions, self.$listeners, lifeCycle)
-            }
-            callAjax()
-        }
-    }
-})
 new Vue({
-    el: '#app',
-    data: function () {
-        return {
-
-        }
-    }
+    el: '#app'
 })
 </script>
 </body>

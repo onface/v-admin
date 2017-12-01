@@ -803,34 +803,41 @@ function moduleFilter (target, selectors) {
 	return $target
 }
 
-vAdmin.ajax = function ajax (ajaxOptions, listeners, lifeCycle) {
+vAdmin.ajax = function ajax (ajaxOptions, listeners, lifeCycle, $el, remove) {
     lifeCycle.willFetch()
     vAdmin.LoadingBar.start()
     ajaxOptions.dataType = 'json'
     $.ajax(ajaxOptions).done(function (res) {
         if (res.status === 'success') {
             var defaultAction = function () {
-                if (typeof self.remove !== 'undefined') {
-                    moduleFilter(self.$el, self.remove).remove()
+                if (typeof remove !== 'undefined') {
+                    var removeTarget = moduleFilter($el, remove)
+                    removeTarget.remove()
                 }
                 vAdmin.Message.success(res.msg || '操作成功')
                 if (res.data) {
+                    var jumpHref = res.data.jump
+                    var isRefresh = false
+                    if (jumpHref === 'refresh') {
+                        isRefresh = true
+                        jumpHref = location.href
+                    }
                     if (res.data.jump) {
                         if (res.data.jumpDelay) {
                             var time = String(parseInt(res.data.jumpDelay)/100)
                             time = time.replace(/(\d)$/, '.$1')
+                            var pageTip = '跳转至 <a href="res.data.jump">' + res.data.jump + '</a>'
+                            if (isRefresh) {
+                                pageTip = '刷新当前页面'
+                            }
                             vAdmin.Message.info(
                                 {
-                                    content: time + '秒后跳转至 <a href="res.data.jump">' + res.data.jump + '</a>',
+                                    content: time + '秒后' + pageTip,
                                     duration: 999
                                 }
                             )
                         }
                         setTimeout(function () {
-                            var jumpHref = res.data.jump
-                            if (jumpHref === 'refresh') {
-                                jumpHref = location.href
-                            }
                             location.href = jumpHref
                         }, res.data.jumpDelay)
                     }
@@ -906,11 +913,11 @@ Vue.component('v-ajax', {
                     self.busy = false
                 },
                 success: function (defaultAction) {
-                    self.$emit('success', [defaultAction])
+                    self.$emit('success', defaultAction)
                 }
             }
             var callAjax = function () {
-                vAdmin.ajax(ajaxOptions, self.$listeners, lifeCycle)
+                vAdmin.ajax(ajaxOptions, self.$listeners, lifeCycle, self.$el, self.remove)
             }
             if (self.confirm) {
                 vAdmin.Modal.confirm({
@@ -924,6 +931,47 @@ Vue.component('v-ajax', {
             else {
                 callAjax()
             }
+        }
+    }
+})
+
+Vue.component('v-form', {
+    props: ['action', 'method'],
+    template: '<form v-on:submit.prevent="submit" ><slot></slot></form>',
+    data: function () {
+        return {
+            busy: false
+        }
+    },
+    methods: {
+        submit: function (e) {
+            var self = this
+            if (self.busy) {
+                return
+            }
+            var url = self.action
+            var type = self.method
+            self.busy = true
+            var ajaxOptions = {
+                type: type,
+                url: url,
+                data: $(e.target).serializeArray()
+            }
+            var lifeCycle = {
+                willFetch: function () {
+                    self.busy = true
+                },
+                didFetch: function () {
+                    self.busy = false
+                },
+                success: function (defaultAction) {
+                    self.$emit('success', defaultAction)
+                }
+            }
+            var callAjax = function () {
+                vAdmin.ajax(ajaxOptions, self.$listeners, lifeCycle, self.$el, self.remove)
+            }
+            callAjax()
         }
     }
 })

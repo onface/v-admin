@@ -50,23 +50,16 @@ Vue.component('custom-action', {
     props: ['row'],
     methods: {
         moreSubmit: function () {
-            var self = this
-            $.ajax({
-                type: 'get',
-                url: '/mock/ok.json',
-                data: $(this.$refs.form).serializeArray(),
-                dataType: 'json'
-            }).done(function (res) {
-                vAdmin.Message.info('操作成功')
-            })
-            .always(function () {
-                // self.more = false
-            })
+            $(this.$refs.submit.$el).trigger('click')
+        },
+        success: function (defaultAction) {
+            defaultAction()
+            this.more = false
         }
     },
     template: vAdmin.str(function () {/*!
         <div>
-            <a class="ivu-btn ivu-btn-small" v-bind:href='"/view?id="+ row.id'>
+            <a class="ivu-btn ivu-btn-small" v-bind:href='"?id="+ row.id'>
                 查看
             </a>
             <v-ajax
@@ -87,7 +80,12 @@ Vue.component('custom-action', {
                 @on-ok="moreSubmit"
                 :loading="loading"
                 >
-                <form ref="form" >
+                <v-form
+                    action="/mock/ok-jump-refresh-delay.json"
+                    method="get"
+                    ref="form"
+                    v-on:success="success"
+                >
                     <i-select
                         name="some"
                         style="width:130px;"
@@ -96,7 +94,8 @@ Vue.component('custom-action', {
                         <i-option value="a" >触发</i-option>
                         <i-option value="b" >群发</i-option>
                     </i-select>
-                </form>
+                    <i-button style="display:none;" ref="submit" html-type="submit" >提交</i-button>
+                </v-form>
             </modal>
         </div>
     */}),
@@ -116,7 +115,8 @@ new Vue({
             }).join(',')
             this.selections = id
         },
-        onRemoveSuccess: function (deafultAction) {
+        onRemoveSuccess: function (defaultAction) {
+            defaultAction()
             var selectionsArray = this.selections.split(',')
             this.list = this.list.filter(function (item) {
                 return selectionsArray.indexOf(item.id) === -1
@@ -150,13 +150,15 @@ new Vue({
                     }
                 ]
             )
-            .concat({
-                title: '操作',
-                key: 'action',
-                render: function (h, props) {
-                    return h('custom-action', {props: props})
+            .concat([
+                {
+                    title: '操作',
+                    key: 'action',
+                    render: function (h, props) {
+                        return h('custom-action', {props: props})
+                    }
                 }
-            })
+            ])
             ,
             list: [
                 {
