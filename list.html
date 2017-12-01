@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>v-admin</title>
+    <script src="https://unpkg.com/jquery@1.12.4/dist/jquery.js" ></script>
+    <script src="https://unpkg.com/vue@2" ></script>
+    <script src="https://unpkg.com/iview@2/dist/iview.min.js"></script>
+    <script src="./v-admin.js" ></script>
+    <link rel="stylesheet" href="https://unpkg.com/iview@2/dist/styles/iview.css" />
+    <link rel="stylesheet" href="./v-admin.css">
+</head>
+<body>
+    <div id="app" style="padding:20px;" >
+        <v-ajax
+            url="/mock/ok.json"
+            type="get"
+            v-bind:data='"id=" + selections'
+            style="display:inline-block;margin-bottom:10px;"
+        >
+            <i-button>
+                批量审核
+            </i-button>
+        </v-ajax>
+        <v-ajax
+            url="/mock/ok.json"
+            type="get"
+            v-bind:data='"id=" + selections'
+            style="display:inline-block;margin-bottom:10px;"
+            comfirm="确认批量删除？"
+            v-on:success="onRemoveSuccess"
+        >
+            <i-button type="error" >
+                批量删除
+            </i-button>
+        </v-ajax>
+        <i-table
+            v-bind:columns="columns"
+            v-bind:data="list"
+            ref="selection"
+            @on-selection-change="selectionChange"
+
+        ></i-table>
+    </div>
+
+<script>
+Vue.component('custom-action', {
+    props: ['row'],
+    methods: {
+        moreSubmit: function () {
+            var self = this
+            $.ajax({
+                type: 'get',
+                url: '/mock/ok.json',
+                data: $(this.$refs.form).serializeArray(),
+                dataType: 'json'
+            }).done(function (res) {
+                vAdmin.Message.info('操作成功')
+            })
+            .always(function () {
+                // self.more = false
+            })
+        }
+    },
+    template: vAdmin.str(function () {/*!
+        <div>
+            <a class="ivu-btn ivu-btn-small" v-bind:href='"/view?id="+ row.id'>
+                查看
+            </a>
+            <v-ajax
+                v-bind:url='"/mock/ok.json?id=" + row.id'
+                remove="closest&tr"
+            >
+                <i-button
+                    type="error"
+                    size="small"
+                >删除</i-button>
+            </v-ajax>
+            <i-button
+                v-on:click="more = true"
+                size="small"
+            >更多操作</i-button>
+            <modal
+                v-model="more"
+                @on-ok="moreSubmit"
+                :loading="loading"
+                >
+                <form ref="form" >
+                    <i-select
+                        name="some"
+                        style="width:130px;"
+                        v-bind:value="row.type"
+                    >
+                        <i-option value="a" >触发</i-option>
+                        <i-option value="b" >群发</i-option>
+                    </i-select>
+                </form>
+            </modal>
+        </div>
+    */}),
+    data: function () {
+        return {
+            more: false,
+            loading: true
+        }
+    }
+})
+new Vue({
+    el: '#app',
+    methods: {
+        selectionChange: function (selection) {
+            var id = selection.map(function (item) {
+                return item.id
+            }).join(',')
+            this.selections = id
+        },
+        onRemoveSuccess: function (deafultAction) {
+            var selectionsArray = this.selections.split(',')
+            this.list = this.list.filter(function (item) {
+                return selectionsArray.indexOf(item.id) === -1
+            })
+            // 如果列表被删光就刷新页面
+            if (this.list.length === 0) {
+                location.href = location.href
+            }
+        }
+    },
+    data: function () {
+        return {
+            selections: '',
+            columns:
+            [
+                {
+                    type: 'selection',
+                    width: 60,
+                    align: 'center'
+                }
+            ].concat(
+                [
+                    {
+                        title: '用户名',
+                        key: 'user',
+
+                    },
+                    {
+                        title: '年龄',
+                        key: 'age'
+                    }
+                ]
+            )
+            .concat({
+                title: '操作',
+                key: 'action',
+                render: function (h, props) {
+                    return h('custom-action', {props: props})
+                }
+            })
+            ,
+            list: [
+                {
+                    user: '张三',
+                    type: 'a',
+                    age: 14,
+                    id: 'gvu3w4hg31'
+                },
+                {
+                    user: '李四',
+                    type: 'b',
+                    age: 18,
+                    id: 'gh23ugh4g'
+                }
+            ]
+        }
+    }
+})
+</script>
+</body>
+</html>

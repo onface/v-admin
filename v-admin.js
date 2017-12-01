@@ -771,6 +771,19 @@ JSON5.stringify = function (obj, replacer, space) {
 };
 
 
+
+/*
+    https://github.com/nuysoft/Mock/blob/refactoring/src/mock/util.js
+*/
+vAdmin.str = function str(fn) {
+    // 1. 移除起始的 function(){ /*!
+    // 2. 移除末尾的 */ }
+    // 3. 移除起始和末尾的空格
+    return fn.toString()
+        .replace(/^[^\/]+\/\*!?/, '')
+        .replace(/\*\/[^\/]+$/, '')
+        .replace(/^[\s\xA0]+/, '').replace(/[\s\xA0]+$/, '') // .trim()
+}
 function moduleFilter (target, selectors) {
 	let $target = $(target)
 	selectors = selectors.split('&')
@@ -790,21 +803,77 @@ function moduleFilter (target, selectors) {
 	return $target
 }
 
+vAdmin.ajax = function ajax (ajaxOptions, listeners, lifeCycle) {
+    lifeCycle.willFetch()
+    vAdmin.LoadingBar.start()
+    ajaxOptions.dataType = 'json'
+    $.ajax(ajaxOptions).done(function (res) {
+        if (res.status === 'success') {
+            var defaultAction = function () {
+                if (typeof self.remove !== 'undefined') {
+                    moduleFilter(self.$el, self.remove).remove()
+                }
+                vAdmin.Message.success(res.msg || '操作成功')
+                if (res.data) {
+                    if (res.data.jump) {
+                        if (res.data.jumpDelay) {
+                            var time = String(parseInt(res.data.jumpDelay)/100)
+                            time = time.replace(/(\d)$/, '.$1')
+                            vAdmin.Message.info(
+                                {
+                                    content: time + '秒后跳转至 <a href="res.data.jump">' + res.data.jump + '</a>',
+                                    duration: 999
+                                }
+                            )
+                        }
+                        setTimeout(function () {
+                            var jumpHref = res.data.jump
+                            if (jumpHref === 'refresh') {
+                                jumpHref = location.href
+                            }
+                            location.href = jumpHref
+                        }, res.data.jumpDelay)
+                    }
+                }
+            }
+            if(typeof listeners['success'] !== 'undefined') {
+                lifeCycle.success(defaultAction)
+            }
+            else {
+                defaultAction()
+            }
+        }
+        else {
+            if (typeof res.msg === 'undefined' || res.msg.length === 0) {
+                vAdmin.Message.error('开发人员：状态为 error 时必须包含 msg')
+                vAdmin.Message.info('示例：{"status":"error","msg":"用户不存在"}')
+                return
+            }
+            vAdmin.Message.error(res.msg)
+        }
+    }).fail(function () {
+        vAdmin.Message.error('网络错误或服务器错误，请刷新重试')
+        vAdmin.LoadingBar.error()
+    }).always(function () {
+        vAdmin.LoadingBar.finish()
+        lifeCycle.didFetch()
+    })
+}
+
 Vue.component('v-ajax', {
     props: ['url', 'type', 'data', 'confirm', 'remove'],
-    template: `
-        <span @click="beforeSend" >
-            <slot></slot>
-        </span>
-    `,
+    template: '<span @click="beforeSend"><slot></slot></span>',
     data: function () {
         return {
-
+            busy: false
         }
     },
     methods: {
         beforeSend: function () {
             var self = this
+            if (self.busy) {
+                return
+            }
             var data = self.data
             var dataIsJSON = typeof data === 'string' && /{/.test(data[0])
             if (dataIsJSON) {
@@ -812,11 +881,11 @@ Vue.component('v-ajax', {
                     data = JSON5.parse(data)
                 }
                 catch(err) {
-                    iview.Message.error({
+                    vAdmin.Message.error({
                         content: data,
                         duration: 60
                     })
-                    iview.Message.error({
+                    vAdmin.Message.error({
                         content: err.message,
                         duration: 60
                     })
@@ -824,77 +893,37 @@ Vue.component('v-ajax', {
                     return
                 }
             }
+            var ajaxOptions = {
+                url: self.url,
+                type: self.type,
+                data: data
+            }
+            var lifeCycle = {
+                willFetch: function () {
+                    self.busy = true
+                },
+                didFetch: function () {
+                    self.busy = false
+                },
+                success: function (defaultAction) {
+                    self.$emit('success', [defaultAction])
+                }
+            }
+            var callAjax = function () {
+                vAdmin.ajax(ajaxOptions, self.$listeners, lifeCycle)
+            }
             if (self.confirm) {
-                iview.Modal.confirm({
+                vAdmin.Modal.confirm({
                    title: '确认操作',
                    content: self.confirm,
                    onOk: function () {
-                       ajax()
+                       callAjax()
                    }
                 })
             }
             else {
-                ajax()
+                callAjax()
             }
-            function ajax () {
-                iview.LoadingBar.start()
-                $.ajax({
-                    url: self.url,
-                    type: self.type,
-                    data: data,
-                    dataType: 'json'
-                }).done(function (res) {
-                    if (res.status === 'success') {
-                        var defaultAction = function () {
-                            if (typeof self.remove !== 'undefined') {
-                                moduleFilter(self.$el, self.remove).remove()
-                            }
-                            iview.Message.success(res.msg || '操作成功')
-                            if (res.data) {
-                                if (res.data.jump) {
-                                    if (res.data.jumpDelay) {
-                                        var time = String(parseInt(res.data.jumpDelay)/100)
-                                        time = time.replace(/(\d)$/, '.$1')
-                                        iview.Message.info(
-                                            {
-                                                content: time + '秒后跳转至 <a href="res.data.jump">' + res.data.jump + '</a>',
-                                                duration: 999
-                                            }
-                                        )
-                                    }
-                                    setTimeout(function () {
-                                        var jumpHref = res.data.jump
-                                        if (jumpHref === 'refresh') {
-                                            jumpHref = location.href
-                                        }
-                                        location.href = jumpHref
-                                    }, res.data.jumpDelay)
-                                }
-                            }
-                        }
-                        if(typeof self.$listeners['success'] !== 'undefined') {
-                            self.$emit('success', [defaultAction])
-                        }
-                        else {
-                            defaultAction()
-                        }
-                    }
-                    else {
-                        if (typeof res.msg === 'undefined' || res.msg.length === 0) {
-                            iview.Message.error('开发人员：状态为 error 时必须包含 msg')
-                            iview.Message.info('示例：{"status":"error","msg":"用户不存在"}')
-                            return
-                        }
-                        iview.Message.error(res.msg)
-                    }
-                }).fail(function () {
-                    iview.Message.error('网络错误或服务器错误，请刷新重试')
-                    iview.LoadingBar.error()
-                }).always(function () {
-                    iview.LoadingBar.finish()
-                })
-            }
-
         }
     }
 })

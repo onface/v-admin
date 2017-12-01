@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>v-admin</title>
+    <script src="https://unpkg.com/jquery@1.12.4/dist/jquery.js" ></script>
+    <script src="https://unpkg.com/vue@2" ></script>
+    <script src="https://unpkg.com/iview@2/dist/iview.min.js"></script>
+    <script src="./v-admin.js" ></script>
+    <link rel="stylesheet" href="https://unpkg.com/iview@2/dist/styles/iview.css" />
+    <link rel="stylesheet" href="./v-admin.css">
+</head>
+<body>
+    <div id="app" style="padding:20px;" >
+        <v-form action="/mock/ok.json" method="get" >
+            <i-input name="user" style="width:180px;" value="username" ></i-input>
+            <i-button html-type="submit" >提交</i-button>
+        </v-form>
+    </div>
+<script>
+Vue.component('v-form', {
+    props: ['action', 'method'],
+    template: '<form v-on:submit.prevent="onSubmit" ><slot></slot></form>',
+    data: function () {
+        return {
+            busy: false
+        }
+    },
+    methods: {
+        onSubmit: function (e) {
+            var self = this
+            if (self.busy) {
+                return
+            }
+            var url = self.action
+            var type = self.method
+            self.busy = true
+            var ajaxOptions = {
+                type: type,
+                url: url,
+                data: $(e.target).serializeArray()
+            }
+            var lifeCycle = {
+                willFetch: function () {
+                    self.busy = true
+                },
+                didFetch: function () {
+                    self.busy = false
+                },
+                success: function (defaultAction) {
+                    self.$emit('success', [defaultAction])
+                }
+            }
+            var callAjax = function () {
+                vAdmin.ajax(ajaxOptions, self.$listeners, lifeCycle)
+            }
+            callAjax()
+        }
+    }
+})
+new Vue({
+    el: '#app',
+    data: function () {
+        return {
+
+        }
+    }
+})
+</script>
+</body>
+</html>
