@@ -36,7 +36,7 @@
                 v-bind:data='"id=" + modalList.selections'
                 style="display:inline-block;margin-bottom:10px;"
             >
-                <i-button  size="small">
+                <i-button type="info"  size="small">
                     批量审核
                 </i-button>
             </v-ajax>
@@ -80,7 +80,7 @@ Vue.component('custom-action', {
     },
     template: vAdmin.str(function () {/*!
         <div>
-            <a class="ivu-btn ivu-btn-small" v-bind:href='"?id="+ row.id'>
+            <a class="ivu-btn ivu-btn-small ivu-btn-info" v-bind:href='"?id="+ row.id'>
                 查看
             </a>
             <v-ajax
@@ -207,8 +207,6 @@ window.rootvm = new Vue({
         },
         modalList_getColumnsRenderData: function () {
             var columns = []
-
-
             columns.push(this.$options.config.selection)
             columns = columns.concat(this.modalList.columns)
             columns.push(this.$options.config.action)
