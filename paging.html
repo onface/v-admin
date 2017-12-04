@@ -14,12 +14,23 @@
 </head>
 <body>
     <div id="app" style="padding:20px;" >
-        <a href="./ajax.html">AJAX</a>
-        <a href="./ajax-list.html">AJAX LIST</a>
+        <page
+            :current="2"
+            :page-size="10"
+            :total="100"
+            @on-change="changePage"
+            show-total
+            show-elevator
+        ></page>
     </div>
 <script>
 new Vue({
     el: '#app',
+    methods: {
+        changePage: function (page) {
+
+        }
+    },
     data: function () {
         return {
 
