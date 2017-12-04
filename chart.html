@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>v-admin</title>
+    <script src="https://unpkg.com/jquery@1.12.4/dist/jquery.js" ></script>
+    <script src="https://unpkg.com/vue@2" ></script>
+    <script src="https://unpkg.com/iview@2/dist/iview.min.js"></script>
+    <script src="./v-admin.js" ></script>
+    <link rel="stylesheet" href="https://unpkg.com/iview@2/dist/styles/iview.css" />
+    <link rel="stylesheet" href="./v-admin.css">
+
+    <script src="https://gw.alipayobjects.com/os/antv/assets/g2/3.0.1/g2.min.js"></script>
+</head>
+<body>
+    图表使用 <a href="https://antv.alipay.com/zh-cn/g2/3.x/tutorial/index.html">G2</a>
+    ，要注意初次渲染需要在 <code>mounted</code> 中。
+    <div id="app" style="padding:20px;" >
+        <div id="c1" ></div>
+    </div>
+<script>
+new Vue({
+    el: '#app',
+    // 在 mounted 函数中调用
+    mounted: function () {
+      var data = [
+        { genre: 'Sports', sold: 275 },
+        { genre: 'Strategy', sold: 115 },
+        { genre: 'Action', sold: 120 },
+        { genre: 'Shooter', sold: 350 },
+        { genre: 'Other', sold: 150 }
+      ]; // G2 对数据源格式的要求，仅仅是 JSON 数组，数组的每个元素是一个标准 JSON 对象。
+      // Step 1: 创建 Chart 对象
+      var chart = new G2.Chart({
+        container: 'c1', // 指定图表容器 ID
+        width : 600, // 指定图表宽度
+        height : 300 // 指定图表高度
+      });
+      // Step 2: 载入数据源
+      chart.source(data);
+      // Step 3：创建图形语法，绘制柱状图，由 genre 和 sold 两个属性决定图形位置，genre 映射至 x 轴，sold 映射至 y 轴
+      chart.interval().position('genre*sold').color('genre')
+      // Step 4: 渲染图表
+      chart.render();
+    },
+    data: function () {
+        return {
+
+        }
+    }
+})
+</script>
+</body>
+</html>
