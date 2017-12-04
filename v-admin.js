@@ -48,8 +48,9 @@
 	var JSON5 = __webpack_require__(1)
 	vAdmin.str = __webpack_require__(2)
 	vAdmin.ajax = __webpack_require__(3)
-	Vue.component('v-ajax', __webpack_require__(4))
-	Vue.component('v-form', __webpack_require__(5))
+	Vue.component('v-ajax', __webpack_require__(5))
+	Vue.component('v-form', __webpack_require__(6))
+	vAdmin.ListLogc = __webpack_require__(7).default
 
 
 /***/ },
@@ -844,30 +845,13 @@
 	        .replace(/\*\/[^\/]+$/, '')
 	        .replace(/^[\s\xA0]+/, '').replace(/[\s\xA0]+$/, '') // .trim()
 	}
-	function moduleFilter (target, selectors) {
-		let $target = $(target)
-		selectors = selectors.split('&')
-		// 第一个选择器开头是 # 或者 . 则不适用 当前元素作为起始元素
-		if (/^[#/.]/.test(selectors[0])) {
-			$target = $(selectors[0])
-			// 移除第一个选择器
-			selectors.shift()
-		}
-		selectors.forEach(function (item, index) {
-			if (index%2 === 0) {
-				let method = item
-				let targetSelector = selectors[index+1]
-				$target = $target[method](targetSelector)
-			}
-		})
-		return $target
-	}
 
 
 /***/ },
 /* 3 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
+	var moduleFilter = __webpack_require__(4)
 	module.exports = function ajax (ajaxOptions, listeners, lifeCycle, $el, remove) {
 	    lifeCycle.willFetch()
 	    vAdmin.LoadingBar.start()
@@ -935,6 +919,30 @@
 
 /***/ },
 /* 4 */
+/***/ function(module, exports) {
+
+	module.exports = function moduleFilter (target, selectors) {
+		let $target = $(target)
+		selectors = selectors.split('&')
+		// 第一个选择器开头是 # 或者 . 则不适用 当前元素作为起始元素
+		if (/^[#/.]/.test(selectors[0])) {
+			$target = $(selectors[0])
+			// 移除第一个选择器
+			selectors.shift()
+		}
+		selectors.forEach(function (item, index) {
+			if (index%2 === 0) {
+				let method = item
+				let targetSelector = selectors[index+1]
+				$target = $target[method](targetSelector)
+			}
+		})
+		return $target
+	}
+
+
+/***/ },
+/* 5 */
 /***/ function(module, exports) {
 
 	module.exports = {
@@ -1007,7 +1015,7 @@
 
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports) {
 
 	module.exports = {
@@ -1049,6 +1057,236 @@
 	            callAjax()
 	        }
 	    }
+	}
+
+
+/***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _sparejs = __webpack_require__(9);
+
+	var _sparejs2 = _interopRequireDefault(_sparejs);
+
+	var _extend = __webpack_require__(8);
+
+	var _extend2 = _interopRequireDefault(_extend);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var ListLogic = function ListLogic(options) {
+	    _classCallCheck(this, ListLogic);
+
+	    var self = this;
+	    self.options = options;
+	};
+
+	var _query = function _query(data) {
+	    var self = this;
+	    data = (0, _sparejs2.default)(data, {});
+	    var queryData = self.options.getQuery();
+	    var fetchQuery = (0, _extend2.default)(true, {}, queryData, data);
+	    self.options.willFetch(function next() {
+	        self.options.fetch(fetchQuery, self.options.render, self.options.didFetch);
+	    });
+	};
+	ListLogic.prototype.query = function (data) {
+	    var self = this;
+	    // 增加延迟是因为 react 框架的 setState 是异步的。
+	    // 有时会出现 setState 已经调用但是 getQuery 获取的值还是老的
+	    setTimeout(function () {
+	        _query.bind(self)(data);
+	    }, 0);
+	};
+	exports.default = ListLogic;
+
+
+/***/ },
+/* 8 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	var hasOwn = Object.prototype.hasOwnProperty;
+	var toStr = Object.prototype.toString;
+
+	var isArray = function isArray(arr) {
+		if (typeof Array.isArray === 'function') {
+			return Array.isArray(arr);
+		}
+
+		return toStr.call(arr) === '[object Array]';
+	};
+
+	var isPlainObject = function isPlainObject(obj) {
+		if (!obj || toStr.call(obj) !== '[object Object]') {
+			return false;
+		}
+
+		var hasOwnConstructor = hasOwn.call(obj, 'constructor');
+		var hasIsPrototypeOf = obj.constructor && obj.constructor.prototype && hasOwn.call(obj.constructor.prototype, 'isPrototypeOf');
+		// Not own constructor property must be Object
+		if (obj.constructor && !hasOwnConstructor && !hasIsPrototypeOf) {
+			return false;
+		}
+
+		// Own properties are enumerated firstly, so to speed up,
+		// if last one is own, then all properties are own.
+		var key;
+		for (key in obj) { /**/ }
+
+		return typeof key === 'undefined' || hasOwn.call(obj, key);
+	};
+
+	module.exports = function extend() {
+		var options, name, src, copy, copyIsArray, clone;
+		var target = arguments[0];
+		var i = 1;
+		var length = arguments.length;
+		var deep = false;
+
+		// Handle a deep copy situation
+		if (typeof target === 'boolean') {
+			deep = target;
+			target = arguments[1] || {};
+			// skip the boolean and the target
+			i = 2;
+		}
+		if (target == null || (typeof target !== 'object' && typeof target !== 'function')) {
+			target = {};
+		}
+
+		for (; i < length; ++i) {
+			options = arguments[i];
+			// Only deal with non-null/undefined values
+			if (options != null) {
+				// Extend the base object
+				for (name in options) {
+					src = target[name];
+					copy = options[name];
+
+					// Prevent never-ending loop
+					if (target !== copy) {
+						// Recurse if we're merging plain objects or arrays
+						if (deep && copy && (isPlainObject(copy) || (copyIsArray = isArray(copy)))) {
+							if (copyIsArray) {
+								copyIsArray = false;
+								clone = src && isArray(src) ? src : [];
+							} else {
+								clone = src && isPlainObject(src) ? src : {};
+							}
+
+							// Never move original objects, clone them
+							target[name] = extend(deep, clone, copy);
+
+						// Don't bring in undefined values
+						} else if (typeof copy !== 'undefined') {
+							target[name] = copy;
+						}
+					}
+				}
+			}
+		}
+
+		// Return the modified object
+		return target;
+	};
+
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	function hasValue(value, yes, no) {
+	    if (typeof value === 'undefined') {
+	        if (typeof no === 'function') {
+	            no()
+	        }
+	        else {
+	            return typeof no === 'undefined'? false: no
+	        }
+	    }
+	    else {
+	        if (typeof yes === 'function') {
+	            yes()
+	        }
+	        else {
+	            return typeof yes === 'undefined'? true: yes
+	        }
+	    }
+	}
+	var spare = function spare () {
+	    var throwError = function () {
+	        throw new Error('node_modules/spare/index.js: You should use `spare(data, defaultValue)` or `spare(data, attr, defaultValue)`\r\n The use of the error: spare(' + Array.from(arguments).join(', ') + ')')
+	    }
+	    var data = arguments[0]
+	    var attr
+	    var defaultValue
+	    switch(arguments.length) {
+	        case 0:
+	            throwError()
+	        break
+	        case 1:
+	            throwError()
+	        break
+	        case 2:
+	            attr = undefined
+	            defaultValue = arguments[1]
+	        break
+	        case 3:
+	            attr = arguments[1]
+	            defaultValue = arguments[2]
+	        break
+	        default:
+	            throwError()
+
+	    }
+	    var attrArray
+	    var output
+	    if (attr) {
+	        attrArray = attr.split('.')
+	        var findUndefinedObj = attrArray.some(function (key, index) {
+	            if (!hasValue(data[key])) {
+	                return true
+	            }
+	            data = typeof data[key] === 'undefined'? {}: data[key]
+	        })
+	        if (findUndefinedObj) {
+	            output = defaultValue
+	        }
+	    }
+	    if (hasValue(output)) {
+	        return output
+	    }
+	    return hasValue(data, data, defaultValue)
+	}
+	spare.settings = __webpack_require__(10)
+	module.exports = spare
+
+
+/***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var extend = __webpack_require__(8)
+	module.exports = function settings (defaultSettings, userSettings) {
+	    var empty
+	    if (Array.isArray(defaultSettings)) {
+	        empty = []
+	    }
+	    else {
+	        empty = {}
+	    }
+	    var copy = extend(true, empty, defaultSettings)
+	    return extend(true, copy, userSettings)
 	}
 
 

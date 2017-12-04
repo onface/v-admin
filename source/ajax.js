@@ -1,3 +1,4 @@
+var moduleFilter = require('./moduleFilter')
 module.exports = function ajax (ajaxOptions, listeners, lifeCycle, $el, remove) {
     lifeCycle.willFetch()
     vAdmin.LoadingBar.start()

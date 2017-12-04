@@ -8,22 +8,213 @@
     <script src="https://unpkg.com/jquery@1.12.4/dist/jquery.js" ></script>
     <script src="https://unpkg.com/vue@2" ></script>
     <script src="https://unpkg.com/iview@2/dist/iview.min.js"></script>
-    <script src="./v-admin.js" ></script>
     <link rel="stylesheet" href="https://unpkg.com/iview@2/dist/styles/iview.css" />
+    <script src="./v-admin.js" ></script>
     <link rel="stylesheet" href="./v-admin.css">
 </head>
 <body>
     <div id="app" style="padding:20px;" >
-        <i-button type="primary" >
-            按钮
-        </i-button>
+        <form class="v-search" ref="search" v-on:submit.prevent="ajaxOnSearch" >
+            <div class="v-search-item">
+                <i-input name="user" placeholder="用户名" style="width:140px;" ></i-input>
+            </div>
+            <div class="v-search-item">
+                <i-input name="password" placeholder="密码" style="width:140px;" ></i-input>
+            </div>
+            <div class="v-search-item">
+                <i-button html-type="submit" type="primary" >搜索</i-button>
+            </div>
+        </form>
+        <v-ajax
+            url="/mock/ok.json"
+            type="get"
+            v-bind:data='"id=" + ajaxSelections'
+            style="display:inline-block;margin-bottom:10px;"
+        >
+            <i-button  size="small">
+                批量审核
+            </i-button>
+        </v-ajax>
+        <v-ajax
+            url="/mock/ok.json"
+            type="get"
+            v-bind:data='"id=" + ajaxSelections'
+            style="display:inline-block;margin-bottom:10px;"
+            comfirm="确认批量删除？"
+            v-on:success="ajaxOnRemoveSuccess"
+        >
+            <i-button type="error" size="small">
+                批量删除
+            </i-button>
+        </v-ajax>
+        <i-table
+            v-bind:columns="ajaxColumnsRender()"
+            v-bind:data="ajaxList"
+            ref="ajaxSelection"
+            @on-selection-change="ajaxSelectionChange"
+        ></i-table>
+        <div style="padding:20px;text-align:center;" >
+            <page
+                :current="ajaxPage"
+                :total="100"
+                style="display:inline-block;"
+                @on-change="ajaxChangePage"
+            ></page>
+        </div>
     </div>
+
 <script>
+Vue.component('custom-action', {
+    props: ['row'],
+    template: vAdmin.str(function () {/*!
+        <div>
+            <a class="ivu-btn ivu-btn-small" v-bind:href='"?id="+ row.id'>
+                查看
+            </a>
+            <v-ajax
+                v-bind:url='"/mock/ok.json?id=" + row.id'
+                remove="closest&tr"
+            >
+                <i-button
+                    type="error"
+                    size="small"
+                >删除</i-button>
+            </v-ajax>
+        </div>
+    */})
+})
 new Vue({
     el: '#app',
+    config: {
+        ajax: {
+            url: '/mock/list.json'
+        }
+    },
+    list: null,
+    beforeCreate: function () {
+        var vm = this
+        vm.$options.list = new vAdmin.ListLogc({
+            getQuery: function () {
+                var sendData = {}
+                $(vm.$refs.search).serializeArray().forEach(function (item){
+                    sendData[item.name] = item.value
+                })
+                return sendData
+            },
+            willFetch: function (next) {
+                if (vm.modalList.busy) {
+                    return
+                }
+                vAdmin.LoadingBar.start()
+                next()
+            },
+            didFetch: function () {
+                vm.modalList.busy = false
+                vAdmin.LoadingBar.finish()
+            },
+            fetch: function (query, render, didFetch) {
+                vm.modalList.busy = true
+                $.ajax({
+                    url: vm.$options.config.ajax.url,
+                    type: 'get',
+                    data: query,
+                    dataType: 'json'
+                }).done(function (res) {
+                    if (res.status === 'success') {
+                        render(query, res)
+                    }
+                    else {
+                        vAdmin.Message.error(res.msg)
+                    }
+                }).always(function () {
+                    didFetch()
+                })
+            },
+            render: function (queryData, res) {
+                vm.ajaxList = res.data.lists
+                vm.ajaxPagecount = res.data.pagecount
+                vm.ajaxPage = queryData.p
+                vm.ajaxSelections = ''
+            }
+        })
+    },
+    methods: {
+        ajaxChangePage: function (page) {
+            this.$options.list.query({p: page})
+        },
+        ajaxOnSearch: function () {
+            this.$options.list.query()
+        },
+        ajaxOnRemoveSuccess:  function (defaultAction) {
+            defaultAction()
+            var selectionsArray = this.ajaxSelections.split(',')
+            this.ajaxList = this.ajaxList.filter(function (item) {
+                return selectionsArray.indexOf(item.id) === -1
+            })
+            // 如果列表被删光就刷新页面
+            if (this.ajaxList.length === 0) {
+                console.log('重新获取')
+            }
+        },
+        ajaxSelectionChange: function (selection) {
+            var id = selection.map(function (item) {
+                return item.id
+            }).join(',')
+            this.ajaxSelections = id
+        },
+        ajaxColumnsRender: function () {
+            var columns = []
+            var selection = {
+                type: 'selection',
+                width: 60,
+                align: 'center'
+            }
+            var action = {
+                title: '操作',
+                key: 'action',
+                render: function (h, props) {
+                    return h('custom-action', {props: props})
+                }
+            }
+            columns.push(selection)
+            columns = columns.concat(this.ajaxColumns)
+            columns.push(action)
+            return columns
+        }
+    },
     data: function () {
         return {
+            modalList: {
+                busy: false
+            },
+            ajaxSelections: '',
+            ajaxColumns:[
+                {
+                    title: '用户名',
+                    key: 'user',
 
+                },
+                {
+                    title: '年龄',
+                    key: 'age'
+                }
+            ],
+            ajaxPage: 1,
+            ajaxPagecount: 0,
+            ajaxList: [
+                {
+                    user: '张三',
+                    type: 'a',
+                    age: 14,
+                    id: 'gvu3w4hg31'
+                },
+                {
+                    user: '李四',
+                    type: 'b',
+                    age: 18,
+                    id: 'gh23ugh4g'
+                }
+            ]
         }
     }
 })

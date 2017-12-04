@@ -4,3 +4,4 @@ vAdmin.str = require('./str')
 vAdmin.ajax = require('./ajax')
 Vue.component('v-ajax', require('./v-ajax'))
 Vue.component('v-form', require('./v-form'))
+vAdmin.ListLogc = require('./ListLogic').default
