@@ -14,58 +14,70 @@
 </head>
 <body>
     <div id="app" style="padding:20px;" >
-        <form class="v-search" ref="search" v-on:submit.prevent="ajaxOnSearch" >
-            <div class="v-search-item">
-                <i-input name="user" placeholder="用户名" style="width:140px;" ></i-input>
-            </div>
-            <div class="v-search-item">
-                <i-input name="password" placeholder="密码" style="width:140px;" ></i-input>
-            </div>
-            <div class="v-search-item">
-                <i-button html-type="submit" type="primary" >搜索</i-button>
-            </div>
-        </form>
-        <v-ajax
-            url="/mock/ok.json"
-            type="get"
-            v-bind:data='"id=" + ajaxSelections'
-            style="display:inline-block;margin-bottom:10px;"
+        <i-button  @click="modalList.show = true" >弹窗列表</i-button>
+        <modal
+            v-model="modalList.show"
+            width="900"
         >
-            <i-button  size="small">
-                批量审核
-            </i-button>
-        </v-ajax>
-        <v-ajax
-            url="/mock/ok.json"
-            type="get"
-            v-bind:data='"id=" + ajaxSelections'
-            style="display:inline-block;margin-bottom:10px;"
-            comfirm="确认批量删除？"
-            v-on:success="ajaxOnRemoveSuccess"
-        >
-            <i-button type="error" size="small">
-                批量删除
-            </i-button>
-        </v-ajax>
-        <i-table
-            v-bind:columns="ajaxColumnsRender()"
-            v-bind:data="ajaxList"
-            ref="ajaxSelection"
-            @on-selection-change="ajaxSelectionChange"
-        ></i-table>
-        <div style="padding:20px;text-align:center;" >
-            <page
-                :current="ajaxPage"
-                :total="100"
-                style="display:inline-block;"
-                @on-change="ajaxChangePage"
-            ></page>
-        </div>
+            <form class="v-search" ref="search" v-on:submit.prevent="modalList_onSearch" >
+                <div class="v-search-item">
+                    <i-input name="user" placeholder="用户名" style="width:140px;" ></i-input>
+                </div>
+                <div class="v-search-item">
+                    <i-input name="password" placeholder="密码" style="width:140px;" ></i-input>
+                </div>
+                <div class="v-search-item">
+                    <i-button html-type="submit" type="primary" >搜索</i-button>
+                </div>
+            </form>
+            <v-ajax
+                url="/mock/ok.json"
+                type="get"
+                v-bind:data='"id=" + modalList.selections'
+                style="display:inline-block;margin-bottom:10px;"
+            >
+                <i-button  size="small">
+                    批量审核
+                </i-button>
+            </v-ajax>
+            <v-ajax
+                url="/mock/ok.json"
+                type="get"
+                v-bind:data='"id=" + modalList.selections'
+                style="display:inline-block;margin-bottom:10px;"
+                comfirm="确认批量删除？"
+                v-on:success="modalList_onRemoveSuccess"
+            >
+                <i-button type="error" size="small">
+                    批量删除
+                </i-button>
+            </v-ajax>
+            <i-table
+                v-bind:columns="modalList_getColumnsRenderData()"
+                v-bind:data="modalList.data"
+                ref="ajaxSelection"
+                @on-selection-change="modalList_onSelectionChange"
+            ></i-table>
+            <div style="padding:20px;text-align:center;" >
+                <page
+                    :current="modalList.page"
+                    :total="100"
+                    style="display:inline-block;"
+                    @on-change="modalList_onChangePage"
+                ></page>
+            </div>
+        </modal>
     </div>
 
 <script>
 Vue.component('custom-action', {
     props: ['row'],
+    methods: {
+        removeSuccess: function (defaultAction) {
+            defaultAction()
+            this.$emit('remove', this.$props.row.id)
+        }
+    },
     template: vAdmin.str(function () {/*!
         <div>
             <a class="ivu-btn ivu-btn-small" v-bind:href='"?id="+ row.id'>
@@ -73,7 +85,7 @@ Vue.component('custom-action', {
             </a>
             <v-ajax
                 v-bind:url='"/mock/ok.json?id=" + row.id'
-                remove="closest&tr"
+                @success="removeSuccess"
             >
                 <i-button
                     type="error"
@@ -83,11 +95,36 @@ Vue.component('custom-action', {
         </div>
     */})
 })
-new Vue({
+window.rootvm = new Vue({
     el: '#app',
     config: {
         ajax: {
             url: '/mock/list.json'
+        },
+        selection: {
+            type: 'selection',
+            width: 60,
+            align: 'center'
+        },
+        action: {
+            title: '操作',
+            key: 'action',
+            render: function (h, props) {
+                return h(
+                    'custom-action',
+                    {
+                        props: props,
+                        on: {
+                            remove: function (id) {
+                                window.rootvm.$data.modalList.data = window.rootvm.$data.modalList.data.filter(function (item) {
+                                    return item.id !== id
+                                })
+                                window.rootvm.whetherGetLatestData()
+                            }
+                        }
+                    }
+                )
+            }
         }
     },
     list: null,
@@ -131,90 +168,88 @@ new Vue({
                 })
             },
             render: function (queryData, res) {
-                vm.ajaxList = res.data.lists
-                vm.ajaxPagecount = res.data.pagecount
-                vm.ajaxPage = queryData.p
-                vm.ajaxSelections = ''
+                vm.modalList.data = res.data.lists
+                vm.modalList.pagecount = res.data.pagecount
+                vm.modalList.page = queryData.p
+                vm.modalList.lastTimePage = queryData.p
+                vm.modalList.selections = ''
             }
         })
     },
     methods: {
-        ajaxChangePage: function (page) {
+        whetherGetLatestData: function () {
+            if (this.modalList.data.length === 0) {
+                this.$options.list.query({p: this.modalList.lastTimePage})
+            }
+        },
+        modalList_onChangePage: function (page) {
             this.$options.list.query({p: page})
         },
-        ajaxOnSearch: function () {
+        modalList_onSearch: function () {
             this.$options.list.query()
         },
-        ajaxOnRemoveSuccess:  function (defaultAction) {
+        modalList_onRemoveSuccess:  function (defaultAction) {
             defaultAction()
-            var selectionsArray = this.ajaxSelections.split(',')
-            this.ajaxList = this.ajaxList.filter(function (item) {
+            var selectionsArray = this.modalList.selections.split(',')
+            this.modalList.data = this.modalList.data.filter(function (item) {
                 return selectionsArray.indexOf(item.id) === -1
             })
             // 如果列表被删光就刷新页面
-            if (this.ajaxList.length === 0) {
-                console.log('重新获取')
+            if (this.modalList.data.length === 0) {
+                this.whetherGetLatestData()
             }
         },
-        ajaxSelectionChange: function (selection) {
+        modalList_onSelectionChange: function (selection) {
             var id = selection.map(function (item) {
                 return item.id
             }).join(',')
-            this.ajaxSelections = id
+            this.modalList.selections = id
         },
-        ajaxColumnsRender: function () {
+        modalList_getColumnsRenderData: function () {
             var columns = []
-            var selection = {
-                type: 'selection',
-                width: 60,
-                align: 'center'
-            }
-            var action = {
-                title: '操作',
-                key: 'action',
-                render: function (h, props) {
-                    return h('custom-action', {props: props})
-                }
-            }
-            columns.push(selection)
-            columns = columns.concat(this.ajaxColumns)
-            columns.push(action)
+
+
+            columns.push(this.$options.config.selection)
+            columns = columns.concat(this.modalList.columns)
+            columns.push(this.$options.config.action)
             return columns
         }
     },
     data: function () {
         return {
             modalList: {
-                busy: false
-            },
-            ajaxSelections: '',
-            ajaxColumns:[
-                {
-                    title: '用户名',
-                    key: 'user',
+                lastTimePage: '',
+                show: false,
+                busy: false,
+                selections: '',
+                columns:[
+                    {
+                        title: '用户名',
+                        key: 'user',
 
-                },
-                {
-                    title: '年龄',
-                    key: 'age'
-                }
-            ],
-            ajaxPage: 1,
-            ajaxPagecount: 0,
-            ajaxList: [
-                {
-                    user: '张三',
-                    type: 'a',
-                    age: 14,
-                    id: 'gvu3w4hg31'
-                },
-                {
-                    user: '李四',
-                    type: 'b',
-                    age: 18,
-                    id: 'gh23ugh4g'
-                }
-            ]
+                    },
+                    {
+                        title: '年龄',
+                        key: 'age'
+                    }
+                ],
+                data: [
+                    {
+                        user: '张三',
+                        type: 'a',
+                        age: 14,
+                        id: 'gvu3w4hg31'
+                    },
+                    {
+                        user: '李四',
+                        type: 'b',
+                        age: 18,
+                        id: 'gh23ugh4g'
+                    }
+                ],
+                page: 1,
+                pagecount: 0
+            }
         }
     }
 })
