@@ -43,6 +43,29 @@
             @on-selection-change="selectionChange"
 
         ></i-table>
+
+        <div class="mo-paging">
+            <a href="#" class="mo-paging-prev">
+                <i class="fa fa-angle-left" title="左三角形"></i> 上一页
+            </a>
+            <a href="#" class="mo-paging-item">1</a>
+            <a href="#" class="mo-paging-item mo-paging-current">2</a>
+            <a href="#" class="mo-paging-item">3</a>
+            <a href="#" class="mo-paging-item">4</a>
+            <a href="#" class="mo-paging-item">5</a>
+            <a href="#" class="mo-paging-item">6</a>
+            <a href="#" class="mo-paging-item">7</a>
+            <span class="mo-paging-ellipsis">...</span>
+            <a href="#" class="mo-paging-item">24</a>
+            <a href="#" class="mo-paging-next">
+                下一页 <i class="fa fa-angle-right" title="右三角形"></i>
+            </a>
+            <span class="mo-paging-info"><span class="mo-paging-bold">5/7</span>页</span>
+            <form action="" style="display:inline-block;" >
+                <span class="mo-paging-which"><input name="p" value="6" type="text"></span>
+                <button type="submit" class="mo-paging-info mo-paging-goto" >跳转</button>
+            </form>
+        </div>
     </div>
 
 <script>

@@ -61,7 +61,8 @@
             <div style="padding:20px;text-align:center;" >
                 <page
                     :current="modalList.page"
-                    :total="100"
+                    :total="modalList.total"
+                    :page-size="10"
                     style="display:inline-block;"
                     @on-change="modalList_onChangePage"
                 ></page>
@@ -169,7 +170,7 @@ window.rootvm = new Vue({
             },
             render: function (queryData, res) {
                 vm.modalList.data = res.data.lists
-                vm.modalList.pagecount = res.data.pagecount
+                vm.modalList.total = res.data.total
                 vm.modalList.page = queryData.p
                 vm.modalList.lastTimePage = queryData.p
                 vm.modalList.selections = ''
@@ -246,7 +247,7 @@ window.rootvm = new Vue({
                     }
                 ],
                 page: 1,
-                pagecount: 0
+                total: 88
             }
         }
     }

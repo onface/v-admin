@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>v-admin</title>
+    <script src="https://unpkg.com/jquery@1.12.4/dist/jquery.js" ></script>
+    <script src="https://unpkg.com/vue@2" ></script>
+    <script src="https://unpkg.com/iview@2/dist/iview.min.js"></script>
+    <script src="./v-admin.js" ></script>
+    <link rel="stylesheet" href="https://unpkg.com/iview@2/dist/styles/iview.css" />
+    <link rel="stylesheet" href="./v-admin.css">
+    <style>
+    .layout{
+  border: 1px solid #d7dde4;
+  background: #f5f7f9;
+}
+.layout-logo{
+  width: 100px;
+  height: 30px;
+  background: #5b6270;
+  border-radius: 3px;
+  float: left;
+  position: relative;
+  top: 15px;
+  left: 20px;
+}
+.layout-member {
+    float: right;
+}
+.layout-member-item {
+    display: inline-block;
+    padding-left: 1em;
+    padding-right: 1em;
+    color:white;
+}
+.layout-nav{
+  text-align: center;
+  margin: 0 auto;
+}
+.layout-nav .ivu-menu-item {
+    float: none;
+    display: inline-block;
+}
+.layout-assistant{
+  text-align: center;
+  margin: 0 auto;
+  height: inherit;
+}
+.layout-assistant .ivu-menu-item {
+    display: inline-block;
+    float: none;
+}
+.layout-breadcrumb{
+  padding: 10px 15px 0;
+}
+.layout-content{
+  min-height: 200px;
+  margin: 15px;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 4px;
+}
+.layout-content-main{
+  padding: 10px;
+}
+.layout-copy{
+  text-align: center;
+  padding: 10px 0 20px;
+  color: #9ea7b4;
+}
+    </style>
+</head>
+<body>
+    <div id="app" >
+        <div class="layout">
+                <i-menu mode="horizontal" theme="dark" active-name="1">
+                    <div class="layout-logo">
+                        <div style="height:6px;overflow:hidden;" ></div>
+                        <a href="#">
+                            <img
+                                src="http://7xpzm0.com2.z0.glb.qiniucdn.com/20170518164104_7451495096864.png"
+                                style="display:block;width:90%;margin:0 auto;"
+                            />
+                        </a>
+                    </div>
+                    <div class="layout-member">
+                        <div class="layout-member-item">
+                            <i class="ivu-icon ivu-icon-person"></i>
+                            张三
+                        </div>
+                        <a href="#" class="layout-member-item"><i class="ivu-icon ivu-icon-log-out"></i>
+                        退出
+                        </a>
+                    </div>
+                    <div class="layout-nav">
+                        <div class="layout-nav">
+                            <a href="#" class="ivu-menu-item ivu-menu-item-active"><i class="ivu-icon ivu-icon-ios-navigate"></i>
+                            Item 1
+                            </a>
+                            <a href="#" class="ivu-menu-item"><i class="ivu-icon ivu-icon-ios-keypad"></i>
+                            Item 2
+                            </a>
+                            <a href="#" class="ivu-menu-item"><i class="ivu-icon ivu-icon-ios-analytics"></i>
+                            Item 3
+                            </a>
+                        </div>
+                    </div>
+                </i-menu>
+                <i-menu mode="horizontal" active-name="1">
+                    <div class="layout-assistant">
+                        <a href="#"  class="ivu-menu-item ivu-menu-item-active">Option 1</a>
+                        <a href="#"  class="ivu-menu-item">Option 2</a>
+                        <a href="#"  class="ivu-menu-item">Option 3</a>
+                    </div>
+                </i-menu>
+                <div class="layout-breadcrumb">
+                    <div class="ivu-breadcrumb">
+                        <span>
+                            <a hrer="#" class="ivu-breadcrumb-item-link">Home</a>
+                            <span class="ivu-breadcrumb-item-separator">/</span>
+                        </span>
+                        <span>
+                            <a hrer="#" class="ivu-breadcrumb-item-link">Projects</a>
+                            <span class="ivu-breadcrumb-item-separator">/</span>
+                        </span>
+                        <span>
+                            <span class="ivu-breadcrumb-item-link">iView</span>
+                            <span class="ivu-breadcrumb-item-separator">/</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="layout-content">
+                    <div class="layout-content-main">
+                        <!-- content start --><!-------------------------------->
+
+                        <!-- content end --><!-------------------------------->
+                    </div>
+                </div>
+                <div class="layout-copy">
+                    2013-2017 &copy; <a target="_blank" href="https://onface.github.io/">onface</a>
+                </div>
+            </div>
+    </div>
+<script>
+new Vue({
+    el: '#app',
+    data: function () {
+        return {
+
+        }
+    }
+})
+</script>
+</body>
+</html>

@@ -3,3 +3,143 @@
     margin-bottom: 10px;
     margin-right: 10px;
 }
+
+.mo-paging,
+.mo-paging input {
+  color: #808080;
+  margin: 0;
+  padding: 0;
+  zoom: 1;
+  font-size: 12px;
+  vertical-align: middle;
+}
+.mo-paging--datacount {
+  margin-right: .5em;
+  margin-left: .5em;
+}
+.mo-table ~ .mo-paging {
+  margin-top: 25px;
+}
+.mo-paging {
+  margin-bottom: 10px;
+  margin-top: 10px;
+  text-align: center;
+}
+.mo-paging a,
+.mo-paging span.mo-paging-prev,
+.mo-paging span.mo-paging-next {
+  text-decoration: none;
+  color: #808080;
+  margin: 0 3px;
+  display: inline-block;
+  *display: inline;
+  *zoom: 1;
+  vertical-align: middle;
+  height: 22px;
+  line-height: 22px;
+}
+.mo-paging-prev,
+.mo-paging-next,
+.mo-paging-goto {
+  background-color: #f6f6f6;
+  padding: 0 8px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+
+.mo-paging-prev:hover,
+.mo-paging-next:hover,
+.mo-paging-goto:hover {
+  border-color: #999;
+  color: #666;
+}
+.mo-paging-prev:hover .iconfont,
+.mo-paging-next:hover .iconfont {
+  color: #666;
+}
+.mo-paging .mo-paging-prev {
+  margin: 0 3px 0 0;
+}
+.mo-paging .iconfont {
+  font-size: 10px;
+  color: #787878;
+}
+.mo-paging a.mo-paging-item {
+  background-color: #f3f3f3;
+  font-weight: bold;
+  padding: 0 8px;
+  border: none;
+}
+.mo-paging a.mo-paging-current,
+.mo-paging a.mo-paging-item:hover {
+  color: #fff;
+  background: #308CF0;
+}
+a.mo-paging-prev:hover,
+a.mo-paging-next:hover {
+  text-decoration: none;
+  color: #666;
+}
+.mo-paging-info {
+  line-height: 24px;
+  margin-right: 5px;
+  height: 24px;
+}
+.mo-paging-ellipsis {
+  margin: 0 5px;
+  line-height: 16px;
+  font-weight: bold;
+}
+.mo-paging-which input {
+  height: 20px;
+  line-height: 20px;
+  padding: 0 6px;
+  width: 4em;
+  border: 1px solid;
+  border-color: #aaa #d1d1d1 #d1d1d1 #aaa;
+}
+.mo-paging-which input:hover {
+  border-color: #999;
+  color: #666;
+}
+.mo-paging-bold {
+  font-weight: bold;
+  padding: 0 8px;
+}
+.mo-paging span.mo-paging-prev,
+.mo-paging span.mo-paging-next,
+.mo-paging span.mo-paging-prev .iconfont,
+.mo-paging span.mo-paging-next .iconfont {
+  color: #fff;
+  box-shadow: none;
+  background: #d4d4d4;
+  border-color: #d4d4d4;
+  filter: none;
+}
+html .mo-paging--simple .mo-paging-prev,
+html .mo-paging--simple .mo-paging-next,
+html .mo-paging--simple .mo-paging-item {
+  padding-left: 15px;
+  padding-right: 15px;
+  height: 32px;
+  line-height: 32px;
+  margin: 0;
+
+}
+html .mo-paging--simple .mo-paging-prev,
+html .mo-paging--simple .mo-paging-next {
+  background-color: white;
+  border: none;
+}
+html .mo-paging-goto {
+    vertical-align: middle;
+    box-sizing: border-box;
+    height: 22px;
+}
+html .mo-paging--simple .mo-paging-item {
+  background-color: white;
+  border-radius:4px;
+}
+html .mo-paging--simple .mo-paging-current {
+  background-color: #f47e43;
+}
