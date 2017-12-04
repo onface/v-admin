@@ -31,10 +31,113 @@
             </div>
             <i-button html-type="submit" type="primary" long >提交</i-button>
         </v-form>
+        <hr>
+        <v-form action="/mock/ok.json" method="get"  >
+            <div class="v-search-item">
+                <i-input name="class" placeholder="班级" >
+                </i-input>
+            </div>
+            <div class="v-search-item">
+                <i-select name="select" placeholder="单选框" value="a" style="width:150px" >
+                    <i-option value="a" >a</i-option>
+                    <i-option value="b" >b</i-option>
+                    <i-option value="c" >c</i-option>
+                </i-select>
+            </div>
+            <div class="v-search-item">
+                <!--
+                    复选框需要通过 v-model 绑定 value，不能直接设置 value
+                    multiple_select_value 需要在 new Vue({}) 中定义
+                -->
+                <i-select multiple name="multiple_select" placeholder="复选框" v-model="multiple_select_value" style="width:150px">
+                    <i-option value="a" >a</i-option>
+                    <i-option value="b" >b</i-option>
+                    <i-option value="c" >c</i-option>
+                </i-select>
+            </div>
+            <div class="v-search-item">
+                <date-picker name="date" type="date" placeholder="选择日期" value="2017-11-11" style="width: 110px"></date-picker>
+            </div>
+            <div class="v-search-item">
+                <date-picker name="daterange" type="daterange" placeholder="日期范围" value="2017-11-11 - 2017-12-22" style="width: 180px"></date-picker>
+            </div>
+            <div class="v-search-item">
+                <!--
+                    级联选择必须通过 data 和 v-model 绑定数据
+                    cascader_datah 和 cascader_value 需要在 new Vue({}) 中定义
+                -->
+                <cascader name="city" placeholder="" :data="cascader_data" v-model="cascader_value" style="width:170px;" ></cascader>
+            </div>
+            <div class="v-search-item">
+                测试数据：<i-switch name="test" :value="true" ></i-switch>
+            </div>
+            <div class="v-search-item">
+                <i-button html-type="submit" type="info" >
+                    搜索
+                </i-button>
+            </div>
+        </v-form>
+
     </div>
 <script>
 new Vue({
-    el: '#app'
+    el: '#app',
+    data: function () {
+        return {
+           multiple_select_value: ["a", "b"],
+           cascader_value: ['beijing','tiantan'],
+           cascader_data: [
+               {
+                   value: 'beijing',
+                   label: '北京',
+                   children: [
+                       {
+                           value: 'gugong',
+                           label: '故宫'
+                       },
+                       {
+                           value: 'tiantan',
+                           label: '天坛'
+                       },
+                       {
+                           value: 'wangfujing',
+                           label: '王府井'
+                       }
+                   ]
+               },
+               {
+                   value: 'jiangsu',
+                   label: '江苏',
+                   children: [
+                       {
+                           value: 'nanjing',
+                           label: '南京',
+                           children: [
+                               {
+                                   value: 'fuzimiao',
+                                   label: '夫子庙',
+                               }
+                           ]
+                       },
+                       {
+                           value: 'suzhou',
+                           label: '苏州',
+                           children: [
+                               {
+                                   value: 'zhuozhengyuan',
+                                   label: '拙政园',
+                               },
+                               {
+                                   value: 'shizilin',
+                                   label: '狮子林',
+                               }
+                           ]
+                       }
+                   ]
+               }
+           ]
+        }
+    }
 })
 </script>
 </body>
