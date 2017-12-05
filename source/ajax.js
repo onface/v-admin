@@ -22,7 +22,7 @@ module.exports = function ajax (ajaxOptions, listeners, lifeCycle, $el, remove) 
                         if (res.data.jumpDelay) {
                             var time = String(parseInt(res.data.jumpDelay)/100)
                             time = time.replace(/(\d)$/, '.$1')
-                            var pageTip = '跳转至 <a href="res.data.jump">' + res.data.jump + '</a>'
+                            var pageTip = '跳转至 <a href="' + res.data.jump + '">' + res.data.jump + '</a>'
                             if (isRefresh) {
                                 pageTip = '刷新当前页面'
                             }
